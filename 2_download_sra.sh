@@ -44,7 +44,7 @@ while read -r SRR; do
     cd "$SRR"
 
     # Download SRA file
-    prefetch "$SRR" || { echo "prefetch failed for $SRR"; exit 1; }
+    prefetch "$SRR" --transport https "$SRR" || { echo "prefetch failed for $SRR"; exit 1; }
 
     # Return to parent directory
     cd ..
