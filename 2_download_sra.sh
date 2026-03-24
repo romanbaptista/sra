@@ -7,7 +7,7 @@ source run_config.sh
 set -euo pipefail
 
 # Load SRA Toolkit module
-module load "$SRA_MODULE"
+#module load "$SRA_MODULE"
 #module load sra-tools/2.10.3
 
 # Check if accession file exists

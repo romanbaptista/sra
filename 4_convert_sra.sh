@@ -13,7 +13,7 @@ source run_config.sh
 set -euo pipefail
 
 # Load SRA Toolkit module
-module load "$SRA_MODULE"
+#module load "$SRA_MODULE"
 
 # Get SRR ID for array index
 SRR=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$ACCESSION_FILE")
