@@ -10,4 +10,4 @@ MAX_JOBS=20
 # Number of threads for fasterq-dump
 THREADS=8
 # SRA Toolkit module to load
-SRA_MODULE="sra-tools/2.10.3"
+SRA_MODULE="apps/sra-tools-2.10.3"

@@ -5,6 +5,7 @@ source run_config.sh
 
 echo
 echo "RUNNING 0_install_edirect.sh..."
+echo
 
 # Exit on error
 set -euo pipefail

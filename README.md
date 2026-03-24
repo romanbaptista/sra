@@ -156,7 +156,7 @@ BIOPROJECT="PRJNA925215"
 ACCESSION_FILE="biosample_srr_accessions.txt"
 MAX_JOBS=20
 THREADS=8
-SRA_MODULE="sra-tools/2.10.3"
+SRA_MODULE="apps/sra-tools-2.10.3"
 ```
 
 ## Config Variables

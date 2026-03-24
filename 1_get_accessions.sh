@@ -57,7 +57,7 @@ COUNT_SAMN=$(wc -l <biosample_samn_accessions.txt)
 
 echo "  $COUNT_SAMN SAMN IDs extracted"
 echo "  SAMN IDs saved to 'biosample_samn_accessions.txt'"
-echo "  Extracting SRR run accession IDs"
+echo "  Extracting SRR accession IDs"
 
 # Get SRR run accessions from BioProject
 esearch -db bioproject -query "$BIOPROJECT" \
