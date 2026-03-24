@@ -7,8 +7,6 @@ The pipeline is fully automated, users:
 
 and the workflow handles the rest.
 
-<br>
-
 --- 
 
 # Table of Contents
@@ -20,14 +18,14 @@ and the workflow handles the rest.
   - [2_download_sra.sh](#2_download_srash)
   - [3_submit_array.sh](#3_submit_arraysh)
   - [4_convert_sra.sh](#4_convert_srash)
+  - [run_config.sh](#run_configsh)
+  - [run_pipeline.sh](#run_pipelinesh)
 - ### [⚙️ User Configuration](#user-configuration)
   - [BIOPROJECT](#bioproject)
   - [ACCESSION_FILE](#accession_file)
   - [MAX_JOBS](#max_jobs)
   - [THREADS](#threads)
   - [SRA_MODULE](#sra_module)
-
-<br>
 
 ----
 # 📁 Repository Structure
@@ -47,8 +45,6 @@ and the workflow handles the rest.
 
 Only `run_pipeline.sh` should be executed directly.
 
-<br>
-
 ----
 # 📄 Script Descriptions
 
@@ -56,7 +52,7 @@ Below is a detailed description of each numbered script in the pipeline.
 Users do not edit these scripts directly — all configuration is handled through run_config.sh.
 
 ## `0_install_edirect.sh`
-### Description
+
 This script ensures that NCBI’s Entrez Direct (EDirect) tools are installed and available in the user’s environment. It:
 - Checks whether esearch is already installed
 - Installs EDirect if missing
@@ -69,7 +65,7 @@ This script ensures that NCBI’s Entrez Direct (EDirect) tools are installed an
 - No data files are produced
 
 ## `1_get_accessions.sh`
-### Description
+
 This script retrieves all relevant accessions associated with the BioProject defined in run_config.sh. It:
 - Queries NCBI for BioSample UIDs linked to the BioProject
 - Downloads metadata for each UID
@@ -84,7 +80,7 @@ This script retrieves all relevant accessions associated with the BioProject def
 - biosample_srr_accessions.txt — extracted SRR run accessions (typically used as the accession file for later steps)
 
 ## `2_download_sra.sh`
-### Description
+
 This script downloads .sra files for each SRR accession listed in the file specified by ACCESSION_FILE in run_config.sh. It:
 - Iterates through each SRR
 - Creates a directory named after the SRR
@@ -99,7 +95,7 @@ SRRxxxxxxx/
 ```
 
 ## `3_submit_array.sh`
-### Description
+
 This script submits the SLURM array job that performs SRA → FASTQ conversion. It:
 - Counts the number of SRRs in the accession file
 - Submits a SLURM array with one task per SRR
@@ -110,7 +106,7 @@ This script submits the SLURM array job that performs SRA → FASTQ conversion. 
 - No files are created directly by this script
 
 ## `4_convert_sra.sh`
-### Description
+
 This script is executed once per SRR as a SLURM array task. It:
 - Loads the SRA Toolkit module
 - Redirects all output into a per‑SRR log file
@@ -128,7 +124,28 @@ SRRxxxxxxx/
     SRRxxxxxxx_conversion.log
 ```
 
-<br>
+## `run_config.sh`
+
+This script is the central configuration file for the entire pipeline. It defines all user‑controlled variables, such as the BioProject ID, accession file, SLURM concurrency, thread count, and SRA Toolkit module. All other scripts source this file and never require direct user modification. The specifics of each variable are described in detail in the [**User Configuration**](#user-configuration) section of this README.
+
+### Output
+- No files are produced directly.
+- Provides configuration values to all other scripts via `source run_config.sh`.
+
+## `run_pipeline.sh`
+
+This is the main entry point for users and orchestrates the entire pipeline. It:
+- Loads configuration from `run_config.sh`
+- Runs `0_install_edirect.sh` to ensure EDirect is available
+- Runs `1_get_accessions.sh` to retrieve all relevant accessions
+- Runs `2_download_sra.sh` to download `.sra` files
+- Runs `3_submit_array.sh` to submit the SLURM array for SRA → FASTQ conversion
+Once this script completes, all conversion work is handled by SLURM, and the user can safely log out of the cluster.
+
+### Output
+- No data files are produced directly.
+- Sequentially triggers all pipeline stages.
+- Submits the SLURM array job that runs `4_convert_sra.sh` for each SRR.
 
 ----
 # ⚙️ User Configuration
