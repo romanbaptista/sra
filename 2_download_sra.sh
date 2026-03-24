@@ -43,8 +43,13 @@ while read -r SRR; do
     # Navigate to directory
     cd "$SRR"
 
-    # Download SRA file
-    prefetch "$SRR" --transport https "$SRR" || { echo "prefetch failed for $SRR"; exit 1; }
+    # Disable SSL certificate verification (fix for old cluster SSL)
+    export NCBI_SETTINGS=/dev/null
+    export VDB_CONFIG=/dev/null
+    
+    # Download SRA file using HTTPS transport
+    prefetch --type sra --transport https "$SRR" || { echo "prefetch failed for $SRR"; exit 1; }
+
 
     # Return to parent directory
     cd ..
