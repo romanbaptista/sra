@@ -27,6 +27,8 @@ and the workflow handles the rest.
   - [SRA_TOOLKIT_PATH](#sra_toolkit_path)
 
 ----
+<br>
+
 # 📁 Repository Structure
 
 ```text
@@ -46,6 +48,8 @@ and the workflow handles the rest.
 Only `run_pipeline.sh` should be executed directly.
 
 ----
+<br>
+
 # 📄 Script Descriptions
 
 Below is a detailed description of each numbered script in the pipeline.
@@ -168,6 +172,8 @@ Once this script completes, all remaining work is handled asynchronously by SLUR
 - Submits the SLURM array job executing `4_convert_sra.sh`
 
 ----
+<br>
+
 # ⚙️ User Configuration
 
 All user-controlled settings are defined in one place: `run_config.sh`.
