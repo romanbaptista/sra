@@ -11,7 +11,7 @@ fi
 
 # Stop if EDirect not installed
 if ! command -v esearch >/dev/null 2>&1; then
-    echo "ERROR: EDirect not installed. Run 0_install_edirect.sh first."
+    echo "ERROR: EDirect not installed. Run 0_install_packages.sh first."
     exit 1
 fi
 

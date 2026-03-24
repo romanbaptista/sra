@@ -6,18 +6,14 @@ source run_config.sh
 # Exit on error
 set -euo pipefail
 
-# Load SRA Toolkit module
-#module load "$SRA_MODULE"
-#module load sra-tools/2.10.3
-
 # Check if accession file exists
 if [[ ! -f "$ACCESSION_FILE" ]]; then
     echo "ERROR: Accession file not found: $ACCESSION_FILE"
     exit 1
 fi
 
-# Get number of SRR IDs
-NUM_IDS=$(wc -l < "$ACCESSION_FILE")
+# Get number of SRR IDs (non-empty lines)
+NUM_IDS=$(grep -cve '^\s*$' "$ACCESSION_FILE")
 # Initialise count
 COUNT=0
 
@@ -43,13 +39,9 @@ while read -r SRR; do
     # Navigate to directory
     cd "$SRR"
 
-    # Disable SSL certificate verification (fix for old cluster SSL)
-    export NCBI_SETTINGS=/dev/null
-    export VDB_CONFIG=/dev/null
-    
-    # Download SRA file
-    prefetch "$SRR" || { echo "prefetch failed for $SRR"; exit 1; }
-    
+    # SRA download (HTTPS enabled)
+    prefetch --transport https "$SRR" || { echo "prefetch failed for $SRR"; exit 1; }
+
     # Return to parent directory
     cd ..
 

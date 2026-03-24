@@ -9,8 +9,8 @@ if [[ ! -f "$ACCESSION_FILE" ]]; then
     exit 1
 fi
 
-# Count SRRs
-NUM_IDS=$(wc -l < "$ACCESSION_FILE")
+# Count SRRs (non-empty lines)
+NUM_IDS=$(grep -cve '^\s*$' "$ACCESSION_FILE")
 
 echo
 echo "RUNNING 3_submit_array.sh..."

@@ -13,11 +13,11 @@ echo "  BioProject:               $BIOPROJECT"
 echo "  Accession File:           $ACCESSION_FILE"
 echo "  Max SLURM Array Jobs:     $MAX_JOBS"
 echo "  FASTERQ Threads:          $THREADS"
-echo "  SRA-Toolkit Module:       apps/sra-tools/2.10.3"
+echo "  SRA-Toolkit:              $SRATOOLS_DIR"
 echo
 
 # Install EDirect
-bash 0_install_edirect.sh
+bash 0_install_packages.sh
 
 # Get SRR Accessions
 bash 1_get_accessions.sh

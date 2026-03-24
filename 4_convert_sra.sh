@@ -4,7 +4,6 @@
 #SBATCH --error=fastq_%A_%a.err
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
-#SBATCH --array=1-300   # Defined by 3_submit_array.sh
 
 # Load user configuration
 source run_config.sh
@@ -12,11 +11,15 @@ source run_config.sh
 # Exit on error
 set -euo pipefail
 
-# Load SRA Toolkit module
-#module load "$SRA_MODULE"
-
 # Get SRR ID for array index
 SRR=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$ACCESSION_FILE")
+
+# Check for empty SRR ID
+if [[ -z "$SRR" ]]; then
+    echo "  ERROR: No SRR found for SLURM_ARRAY_TASK_ID=$SLURM_ARRAY_TASK_ID"
+    exit 1
+fi
+
 # Check SRR directory exists
 mkdir -p "$SRR"
 # Create log file inside SRR directory
