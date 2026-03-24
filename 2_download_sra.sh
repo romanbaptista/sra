@@ -47,10 +47,9 @@ while read -r SRR; do
     export NCBI_SETTINGS=/dev/null
     export VDB_CONFIG=/dev/null
     
-    # Download SRA file using HTTPS transport
-    prefetch --type sra --transport https "$SRR" || { echo "prefetch failed for $SRR"; exit 1; }
-
-
+    # Download SRA file
+    prefetch "$SRR" || { echo "prefetch failed for $SRR"; exit 1; }
+    
     # Return to parent directory
     cd ..
 
