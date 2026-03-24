@@ -1,9 +1,10 @@
 #!/bin/bash
 
+# Load user configuration
+source run_config.sh
+
 echo
 echo "RUNNING 0_install_edirect.sh..."
-echo
-echo "  Getting current directory"
 
 # Exit on error
 set -euo pipefail

@@ -1,17 +1,24 @@
 #!/bin/bash
 
-ACCESSION_FILE="accessions_test.txt"
+# Load user configuration
+source run_config.sh
+
+# Check if accession file exists
+if [[ ! -f "$ACCESSION_FILE" ]]; then
+    echo "ERROR: Accession file not found: $ACCESSION_FILE"
+    exit 1
+fi
 
 # Count SRRs
 NUM_IDS=$(wc -l < "$ACCESSION_FILE")
-# Define max number of jobs
-MAX_JOBS=20
 
 echo
-echo "RUNNING 3_calculate_array.sh..."
+echo "RUNNING 3_submit_array.sh..."
 echo "  Detected $NUM_IDS SRR accessions"
 echo "  Submitting SLURM array job with $MAX_JOBS maximum concurrent tasks"
 echo
 
 # Submit array job with maximum concurrent tasks
 sbatch --array=1-$NUM_IDS%$MAX_JOBS 4_convert_sra.sh
+
+echo "3_submit_array.sh COMPLETE"

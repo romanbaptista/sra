@@ -1,196 +1,181 @@
-# _BioSample_
+# SRA BioProject Processing Pipeline
+This repository contains a modular, SLURM‑compatible pipeline for retrieving, downloading, and converting sequencing data from an NCBI BioProject into compressed FASTQ files. It is designed for HPC environments and supports safe throttling, per‑sample logging, and clean directory isolation for each SRR accession.
+The pipeline is fully automated, users: 
+- Configure a single file (`run_config.sh`)
+- Run one command (`bash run_pipeline.sh`)
 
-# TODO
-- Update script names
-- Update finalised scripts
-- Update input/output file names
-- Check correct user inputs in each script
-- ADD EXTRACTION OF ISOLATE NAME TO 1_GET_ACCESSIONS FROM XML (CHECK FOR IDS TO BE REMOVED)
-- CHECK IF SRATOOLKIT IS ALREADY INSTALLED ON CLUSTER FFS
+and the workflow handles the rest.
 
-# Overview
+## Table of Contents
 
-This file describes the scripts used for acquisition, processing and analysis of BioSample WGS SRA files. Broadly, the pipeline as follows:
-  - Install NCBI edirect package
-  - Install NCBI SRA Toolkit package
-  - Identify relevant BioSample IDs
-  - Download XML metadata 
-  - Source SAMN IDs
-  - Convert SAMN IDs to SRR file IDs 
-  - Download associated data and convert to FASTQ
+- [Workflow Overview](#workflow-overview)
+- [Repository Structure](#repository-structure)
+- [Script Descriptions](#script-descriptions)
+  - [0_install_edirect.sh](#0_install_edirectsh)
+  - [1_get_accessions.sh](#1_get_accessionssh)
+  - [2_download_sra.sh](#2_download_srash)
+  - [3_submit_array.sh](#3_submit_arraysh)
+  - [4_convert_sra.sh](#4_convert_srash)
+- [User Configuration](#user-configuration)
+  - [BIOPROJECT](#bioproject)
+  - [ACCESSION_FILE](#accession_file)
+  - [MAX_JOBS](#max_jobs)
+  - [THREADS](#threads)
+  - [SRA_MODULE](#sra_module)
 
-These are achieved using 3 scripts, described below in order.
+## Workflow Overview
+The pipeline performs the following steps:
+- Install EDirect (if needed)
+- Ensures NCBI’s Entrez Direct tools (esearch, efetch, etc.) are available.
+- Retrieve accessions from a BioProject
+- Extracts BioSample UIDs
+- Retrieves metadata
+- Extracts SAMN accessions
+- Extracts SRR run accessions
+- Saves SRR IDs to a file
+- Download SRA files
+For each SRR, a directory is created and the .sra file is downloaded using prefetch.
+- Submit a SLURM array job
+Each SRR is processed by a separate SLURM task, with a configurable maximum number of concurrent jobs.
+- Convert SRA → FASTQ
+Each SLURM task:
+- Converts the .sra file using fasterq-dump
+- Compresses FASTQ files
+- Writes a detailed log inside the SRR directory
+The result is a clean directory structure:
 
-BioProject data used for this project can be found [here](https://www.ncbi.nlm.nih.gov/biosample?LinkName=bioproject_biosample_all&from_uid=925215)
-
-<br>
-<br>
-
-# `0_install_packages.sh`
-
-## Description
-This script:
-  - Downloads and installs edirect and SRA toolkit
-  - Adds packages to PATH
-  - Updates PATH, and allows packages to be used in the current session
-
-**NOTE:** `sratoolkit_2.10.9-centos_linux64` is downloaded specifically as it works with the `glibc 2.26` that is present on the HPC cluster.
-
-## Input
-  - No user input required, script can be run as is
-
-## Output
-  - `edirect/` folder created automatically in home directory
-  - `sratoolkit_2.10.9-centos_linux64/` folder created automatically in current directory
-
-## Script
-
-```bash
-#!/bin/bash
-
-echo
-echo "RUNNING 0_install_packages.sh..."
-echo
-echo "Extracting current directory"
-
-# Get current working directory
-PWD="$(pwd)"
-
-echo "Installing NCBI edirect"
-
-# Install edirect
-sh -c "$(curl -fsSL https://ftp.ncbi.nlm.nih.gov/entrez/entrezdirect/install-edirect.sh)"
-
-echo ">> edirect installed"
-echo "Downloading SRA toolkit (latest Linux 64-bit)"
-
-# Download SRA toolkit
-wget https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/current/sratoolkit.current-ubuntu64.tar.gz
-
-echo ">> toolkit downloaded"
-echo "Extracting toolkit"
-
-# Extract SRA toolkit
-tar -xzf sratoolkit.current-ubuntu64.tar.gz
-
-# Get directory name
-SRA_DIR=$(tar -tf sratoolkit.current-ubuntu64.tar.gz | head -1 | cut -f1 -d"/")
-
-echo ">> toolkit extracted"
-echo "Adding packages to PATH"
-
-# Add edirect to PATH
-echo "export PATH=${PWD}/edirect:\${PATH}" >> ${HOME}/.bashrc
-# Add SRA toolkit to PATH
-echo "export PATH=${PWD}/${SRA_DIR}/bin:\$PATH" >> ${HOME}/.bashrc
-
-echo "Updating PATH"
-
-# Reload for use in current session
-source ~/.bashrc
-
-echo
-echo "0_install_packages.sh COMPLETE"
-echo
+```text
+SRR1234567/
+    SRR1234567.sra
+    SRR1234567_1.fastq.gz
+    SRR1234567_2.fastq.gz
+    SRR1234567_conversion.log
 ```
 
-## Configuration
-
-- Before use, the SRA Toolkit requires some configuration, otherwise the `prefetch` and `fasterq-dump` commands in `2_download_sar.sh` cannot be used
-- After running `0_install_packages.sh`, enter the following in the terminal:
-```bash
-vdb-config --interactive
-```
-- This launches a text interface for configuration
-1. On the `Cache` tab, select `choose` under `location of user-repository`
-    - Select `Goto` at the bottom of the window and enter the path to the desired cache folder location e.g. `username/sar_cache`
-    - Confirm the location
-2. Use the `save` button at the top of the screen to save the configuration
-3. Use the `exit` button at the top of the screen to exit configuration
-
-<br>
-<br>
-
-# `1_get_accessions.sh`
-
-## Description
-This script:
-  - Takes a BioProject ID
-  - Accesses all BioSample UIDs associated with the BioProject
-  - Downloads UIDs, and converts to SAMN accession IDs
-
-## Input
-
-  - User **must specify** desired BioProject ID in line 4 of the script:
-  
-  ```bash
-  BIOPROJECT="PRJNAXXXXXX"
-  ```
-
-## Output
-  - `biosample_uids.txt` file containing all BioSample UIDs
-  - `biosample_docsum.xml` file containing data associated with UIDs
-  - `biosample_accessions.txt` file containing all associated SAMN accession IDs for later download
-
-## Script
-
-```bash
-#!/bin/bash
-
-# Define BioProject 
-BIOPROJECT=""
-
-# Stop if BIOPROJECT is empty
-if [[ -z "$BIOPROJECT" ]]; then
-    echo "ERROR: BioProject ID not provided. Please edit the script and set a valid BioProject ID."
-    exit 1
-fi
-
-echo "RUNNING 1_get_accessions.sh..."
-echo
-echo "Extracting UIDs for BioProject ID ${BIOPROJECT}"
-
-# Extract UIDs
-esearch -db bioproject -query "${BIOPROJECT}" \
-  | elink -target biosample \
-  | efetch -format uid \
-  > biosample_uids.txt
-  
-echo "Extracting XML data"
-
-# Get UID metadata
-efetch -db biosample -format docsum < biosample_uids.txt > biosample_docsum.xml
-
-echo "Extracting SAMN accession IDs"
-
-# Get accessions
-cat biosample_docsum.xml \
-  | xtract -pattern DocumentSummary -element Accession \
-  > biosample_accessions.txt
-
-echo "1_get_accessions.sh COMPLETE"
-echo
+## Repository Structure
+```text
+.
+├── run_pipeline.sh          # Main entry point for users
+├── run_config.sh            # User-editable configuration file
+│
+├── 0_install_edirect.sh     # Installs EDirect if missing
+├── 1_get_accessions.sh      # Retrieves UIDs, SAMNs, and SRRs
+├── 2_download_sra.sh        # Downloads SRA files into per-SRR directories
+├── 3_submit_array.sh        # Submits SLURM array for conversion
+├── 4_convert_sra.sh         # SLURM task script: SRA → FASTQ conversion
+│
+└── (output files generated during pipeline execution)
 ```
 
-<br>
-<br>
+Only `run_pipeline.sh` should be executed directly.
 
-# `2_download_sar.sh`
+## Script Descriptions
 
-## Description
-This script:
-  - Takes a text file of BioSample SAMN Accession IDs
-  - Downloads associated SAR files
-  - Converts SAR to FASTQ files
+Below is a detailed description of each numbered script in the pipeline.
+Users do not edit these scripts directly — all configuration is handled through run_config.sh.
 
-## Input
+### `0_install_edirect.sh`
+#### Description
+This script ensures that NCBI’s Entrez Direct (EDirect) tools are installed and available in the user’s environment. It:
+- Checks whether esearch is already installed
+- Installs EDirect if missing
+- Adds EDirect to the user’s PATH if needed
+- Updates the PATH for the current session
 
-  - User can specify accession ID text file in line 7 of the script, for testing purposes. By default the `biosample_accessions.txt` output file from `1_get_accessions.sh` is used.
-  - User can specify number of threads used for FASTQ conversion, on line 8 of the script. By default 8 threads are used.
+#### Output
+- Installs EDirect into $HOME/edirect (if not already present)
+- Updates ~/.bashrc with the EDirect PATH entry (if missing)
+- No data files are produced
 
-## Output
+### `1_get_accessions.sh`
+#### Description
+This script retrieves all relevant accessions associated with the BioProject defined in run_config.sh. It:
+- Queries NCBI for BioSample UIDs linked to the BioProject
+- Downloads metadata for each UID
+- Extracts SAMN accessions
+- Extracts SRR run accessions
+- Produces the SRR list used by later pipeline stages
 
-  - 
+#### Output
+- biosample_uids.txt — list of BioSample UIDs
+- biosample_docsum.xml — metadata for each UID
+- biosample_samn_accessions.txt — extracted SAMN IDs
+- biosample_srr_accessions.txt — extracted SRR run accessions (typically used as the accession file for later steps)
 
-## Script
+### `2_download_sra.sh`
+#### Description
+This script downloads .sra files for each SRR accession listed in the file specified by ACCESSION_FILE in run_config.sh. It:
+- Iterates through each SRR
+- Creates a directory named after the SRR
+- Downloads the .sra file using prefetch
+- Ensures clean directory isolation for each sample
 
+#### Output
+For each SRR:
+```text
+SRRxxxxxxx/
+    SRRxxxxxxx.sra
+```
+
+### `3_submit_array.sh`
+#### Description
+This script submits the SLURM array job that performs SRA → FASTQ conversion. It:
+- Counts the number of SRRs in the accession file
+- Submits a SLURM array with one task per SRR
+- Applies the concurrency limit defined by MAX_JOBS in run_config.sh
+
+#### Output
+- Submits a SLURM array job
+- No files are created directly by this script
+
+### `4_convert_sra.sh`
+#### Description
+This script is executed once per SRR as a SLURM array task. It:
+- Loads the SRA Toolkit module
+- Redirects all output into a per‑SRR log file
+- Converts the .sra file into FASTQ files using fasterq-dump
+- Compresses the FASTQ files
+- Produces clean, per‑sample output and logs
+
+#### Output
+For each SRR:
+```text
+SRRxxxxxxx/
+    SRRxxxxxxx.sra
+    SRRxxxxxxx_1.fastq.gz
+    SRRxxxxxxx_2.fastq.gz
+    SRRxxxxxxx_conversion.log
+```
+
+## User Configuration
+All user‑controlled settings are defined in one place: `run_config.sh`.
+
+```bash
+BIOPROJECT="PRJNA925215"
+ACCESSION_FILE="biosample_srr_accessions.txt"
+MAX_JOBS=20
+THREADS=8
+SRA_MODULE="sra-tools/2.10.3"
+```
+
+### Config Variables
+
+#### `BIOPROJECT`
+- **This is the primary setting users will modify**.
+- Set it to the BioProject ID you want to process.
+
+#### `ACCESSION_FILE`
+- Automatically generated as `biosample_srr_accessions.txt` when running `1_get_accessions.sh`.
+- This shouldn't be changed unless users have altered the filename.
+
+#### `MAX_JOBS`
+- Controls how many SLURM array tasks run concurrently.
+- Users should not increase this without consulting cluster administrators, as it may violate job scheduling policies.
+
+#### `THREADS`
+- Number of threads passed to fasterq-dump.
+- Defaults to 8 — typically fine for most clusters.
+
+#### `SRA_MODULE`
+- Specifies the SRA Toolkit module to load.
+- This version is already installed on the RVC cluster and won't need to be edited unless the module installation is changed.

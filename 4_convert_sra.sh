@@ -4,21 +4,21 @@
 #SBATCH --error=fastq_%A_%a.err
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
-#SBATCH --array=1-300   # Defined by 3_calculate_array.sh
+#SBATCH --array=1-300   # Defined by 3_submit_array.sh
+
+# Load user configuration
+source run_config.sh
 
 # Exit on error
 set -euo pipefail
 
 # Load SRA Toolkit module
-module load sra-tools/2.10.3
-
-# Define accession file
-ACCESSION_FILE="accessions_test.txt"
-# Define threads
-THREADS=8
+module load "$SRA_MODULE"
 
 # Get SRR ID for array index
 SRR=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$ACCESSION_FILE")
+# Check SRR directory exists
+mkdir -p "$SRR"
 # Create log file inside SRR directory
 LOGFILE="${SRR}/${SRR}_conversion.log"
 # Redirect .out/.err logs to LOGFILE
@@ -47,4 +47,5 @@ fasterq-dump "${SRR}.sra" --split-files --threads "$THREADS"
 echo "  Compressing FASTQ files"
 gzip *.fastq
 
+echo
 echo "4_convert_sra.sh COMPLETE"
