@@ -1,5 +1,6 @@
 # SRA BioProject Processing Pipeline
 This repository contains a modular, SLURM‑compatible pipeline for retrieving, downloading, and converting sequencing data from an NCBI BioProject into compressed FASTQ files. It is designed for HPC environments and supports safe throttling, per‑sample logging, and clean directory isolation for each SRR accession.
+
 The pipeline is fully automated, users: 
 - Configure a single file (`run_config.sh`)
 - Run one command (`bash run_pipeline.sh`)
@@ -22,35 +23,6 @@ and the workflow handles the rest.
   - [MAX_JOBS](#max_jobs)
   - [THREADS](#threads)
   - [SRA_MODULE](#sra_module)
-
-## Workflow Overview
-The pipeline performs the following steps:
-- Install EDirect (if needed)
-- Ensures NCBI’s Entrez Direct tools (esearch, efetch, etc.) are available.
-- Retrieve accessions from a BioProject
-- Extracts BioSample UIDs
-- Retrieves metadata
-- Extracts SAMN accessions
-- Extracts SRR run accessions
-- Saves SRR IDs to a file
-- Download SRA files
-For each SRR, a directory is created and the .sra file is downloaded using prefetch.
-- Submit a SLURM array job
-Each SRR is processed by a separate SLURM task, with a configurable maximum number of concurrent jobs.
-- Convert SRA → FASTQ
-Each SLURM task:
-- Converts the .sra file using fasterq-dump
-- Compresses FASTQ files
-- Writes a detailed log inside the SRR directory
-The result is a clean directory structure:
-
-```text
-SRR1234567/
-    SRR1234567.sra
-    SRR1234567_1.fastq.gz
-    SRR1234567_2.fastq.gz
-    SRR1234567_conversion.log
-```
 
 ## Repository Structure
 ```text
