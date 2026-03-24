@@ -9,7 +9,6 @@ and the workflow handles the rest.
 
 ## Table of Contents
 
-- [Workflow Overview](#workflow-overview)
 - [Repository Structure](#repository-structure)
 - [Script Descriptions](#script-descriptions)
   - [0_install_edirect.sh](#0_install_edirectsh)
