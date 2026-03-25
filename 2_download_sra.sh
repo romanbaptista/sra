@@ -36,11 +36,23 @@ while read -r SRR; do
     echo "  [$COUNT / $NUM_IDS] $(date '+%Y-%m-%d %H:%M:%S') Processing $SRR"
 
     # Create directory for SRR ID
-    mkdir -p "$SRR"
+    #mkdir -p "$SRR"
 
     # SRA download (HTTPS enabled)
     #prefetch --transport https "$SRR" || { echo "prefetch failed for $SRR"; exit 1; }
-    prefetch --transport https --output-directory "$SRR" "$SRR" || { echo "prefetch failed for $SRR"; exit 1; }
+    #prefetch --transport https --output-directory "$SRR" "$SRR" || { echo "prefetch failed for $SRR"; exit 1; }
+
+    # Create directory for SRR ID
+    mkdir -p "$SRR"
+    # Navigate to directory
+    cd "$SRR"
+
+    # Localise SRA config
+    export VDB_CONFIG="$PWD/.vdb-config"
+    vdb-config --set /repository/user/main/public/root="$PWD"
+
+    # Download
+    prefetch --transport https "$SRR"
 
     # Return to parent directory
     cd ..
