@@ -3,8 +3,9 @@
 This repository contains a modular, SLURM-compatible pipeline for retrieving, downloading, and converting sequencing data from an NCBI BioProject into compressed FASTQ files. It is designed for HPC environments and supports safe throttling, per-sample logging, and clean directory isolation for each SRR accession.
 
 The pipeline is fully automated. Users:
-- Configure a single file (run_config.sh)
-- Run one command (bash run_pipeline.sh)
+- Copy bash scripts into their directory of choice
+- Configure a single file (`run_config.sh`)
+- Run one command (`bash run_pipeline.sh`)
 
 The workflow handles the rest.
 <br>
