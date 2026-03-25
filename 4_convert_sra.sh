@@ -50,7 +50,8 @@ cd "$SRR"
 echo "  Converting $SRR to FASTQ"
 fasterq-dump "${SRR}.sra" --split-files --threads "$THREADS"
 echo "  Compressing FASTQ files"
-gzip *.fastq
+# Compress and delete uncompressed files
+gzip -f *.fastq
 
 echo
 echo "4_convert_sra.sh COMPLETE"
