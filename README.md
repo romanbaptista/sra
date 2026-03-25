@@ -47,6 +47,7 @@ The workflow handles the rest.
 
 Only `bash run_pipeline.sh` should be executed directly.
 <br>
+<br>
 
 ----
 # 📄 Script Descriptions
