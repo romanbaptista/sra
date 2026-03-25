@@ -45,7 +45,7 @@ The workflow handles the rest.
 └── (output files generated during pipeline execution)
 ```
 
-Only run_pipeline.sh should be executed directly.
+Only `bash run_pipeline.sh` should be executed directly.
 <br>
 
 ----
