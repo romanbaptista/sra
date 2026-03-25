@@ -4,7 +4,7 @@
 BIOPROJECT="PRJNA925215"
 
 # File containing SRR accessions
-ACCESSION_FILE="accessions_test.txt"
+ACCESSION_FILE="biosample_srr_accessions.txt"
 # Maximum number of concurrent SLURM array jobs
 MAX_JOBS=20
 # Number of threads for fasterq-dump
