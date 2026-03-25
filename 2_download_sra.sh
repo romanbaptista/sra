@@ -51,8 +51,8 @@ while read -r SRR; do
     export VDB_CONFIG="$PWD/.vdb-config"
     vdb-config --set /repository/user/main/public/root="$PWD"
 
-    # Download
-    prefetch --transport https "$SRR"
+    # Download directly into SRR directory
+    prefetch --transport https --output-directory "$PWD" "$SRR" || { echo "prefetch failed for $SRR"; exit 1; }
 
     # Return to parent directory
     cd ..
