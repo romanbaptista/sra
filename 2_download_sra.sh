@@ -19,6 +19,7 @@ COUNT=0
 
 echo
 echo "RUNNING 2_download_sra.sh..."
+echo
 echo "  Input file: $ACCESSION_FILE"
 echo "  Number of SRR IDs: $NUM_IDS"
 echo
@@ -36,8 +37,6 @@ while read -r SRR; do
 
     # Create directory for SRR ID
     mkdir -p "$SRR"
-    # Navigate to directory
-    cd "$SRR"
 
     # SRA download (HTTPS enabled)
     #prefetch --transport https "$SRR" || { echo "prefetch failed for $SRR"; exit 1; }
