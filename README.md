@@ -27,7 +27,7 @@ The workflow handles the rest.
   - [MAX_JOBS](#max_jobs)
   - [THREADS](#threads)
   - [SRA_TOOLKIT_PATH](#sra-toolkit-path)
-### [❔ Why SRA Toolkit 2.10.9?](#why-sra-toolkit-2109-1)
+### [❔ Why SRA Toolkit 2.10.9?](#-why-sra-toolkit-2109-1)
 <br>
 
 ----
