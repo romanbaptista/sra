@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=sra_to_fastq_convert
-#SBATCH --output=fastq_%A_%a.out
-#SBATCH --error=fastq_%A_%a.err
+#SBATCH --output=/dev/null
+#SBATCH --error=/dev/null
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 
