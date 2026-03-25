@@ -40,7 +40,8 @@ while read -r SRR; do
     cd "$SRR"
 
     # SRA download (HTTPS enabled)
-    prefetch --transport https "$SRR" || { echo "prefetch failed for $SRR"; exit 1; }
+    #prefetch --transport https "$SRR" || { echo "prefetch failed for $SRR"; exit 1; }
+    prefetch --transport https --output-directory "$SRR" "$SRR" || { echo "prefetch failed for $SRR"; exit 1; }
 
     # Return to parent directory
     cd ..

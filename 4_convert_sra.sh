@@ -29,6 +29,7 @@ exec >"$LOGFILE" 2>&1
 
 echo
 echo "RUNNING 4_convert_sra.sh..."
+echo
 echo "  Array task: $SLURM_ARRAY_TASK_ID"
 echo "  SRR: $SRR"
 echo
