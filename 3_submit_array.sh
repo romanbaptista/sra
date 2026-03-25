@@ -14,6 +14,7 @@ NUM_IDS=$(grep -cve '^\s*$' "$ACCESSION_FILE")
 
 echo
 echo "RUNNING 3_submit_array.sh..."
+echo
 echo "  Detected $NUM_IDS SRR accessions"
 echo "  Submitting SLURM array job with $MAX_JOBS maximum concurrent tasks"
 echo

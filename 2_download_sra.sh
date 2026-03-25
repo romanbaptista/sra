@@ -36,13 +36,6 @@ while read -r SRR; do
     echo "  [$COUNT / $NUM_IDS] $(date '+%Y-%m-%d %H:%M:%S') Processing $SRR"
 
     # Create directory for SRR ID
-    #mkdir -p "$SRR"
-
-    # SRA download (HTTPS enabled)
-    #prefetch --transport https "$SRR" || { echo "prefetch failed for $SRR"; exit 1; }
-    #prefetch --transport https --output-directory "$SRR" "$SRR" || { echo "prefetch failed for $SRR"; exit 1; }
-
-    # Create directory for SRR ID
     mkdir -p "$SRR"
     # Navigate to directory
     cd "$SRR"
