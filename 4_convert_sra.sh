@@ -22,6 +22,16 @@ fi
 
 # Check SRR directory exists
 mkdir -p "$SRR"
+
+# Define path to sra file
+SRA_PATH="${SRR}/${SRR}.sra"
+
+# Error if not found
+if [[ ! -f "$SRA_PATH" ]]; then
+    echo "  ERROR: SRA file not found: $SRA_PATH"
+    exit 1
+fi
+
 # Create log file inside SRR directory
 LOGFILE="${SRR}/${SRR}_conversion.log"
 # Redirect .out/.err logs to LOGFILE
@@ -33,15 +43,6 @@ echo
 echo "  Array task: $SLURM_ARRAY_TASK_ID"
 echo "  SRR: $SRR"
 echo
-
-# Define path to sra file
-SRA_PATH="${SRR}/${SRR}.sra"
-
-# Error if not found
-if [[ ! -f "$SRA_PATH" ]]; then
-    echo "  ERROR: SRA file not found: $SRA_PATH"
-    exit 1
-fi
 
 # Navigate to directory
 cd "$SRR"
