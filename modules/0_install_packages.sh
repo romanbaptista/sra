@@ -1,14 +1,23 @@
 #!/bin/bash
 
+# Exit on error
+set -euo pipefail
+
+######################### DIRECTORIES ####################
+
+# Define pipeline root path
+PIPELINE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+######################### CONFIG #########################
+
 # Load user configuration
-source run_config.sh
+source "${PIPELINE_DIR}/config.sh"
+
+######################### SCRIPT #########################
 
 echo
 echo "RUNNING 0_install_packages.sh..."
 echo
-
-# Exit on error
-set -euo pipefail
 
 # Check if edirect is present
 if command -v esearch >/dev/null 2>&1 || [[ -x "$HOME/edirect/esearch" ]]; then
@@ -19,7 +28,7 @@ else
     # Install EDirect
     sh -c "$(curl -fsSL https://ftp.ncbi.nlm.nih.gov/entrez/entrezdirect/install-edirect.sh)"
     echo "  EDirect installed at $HOME/edirect"
-    echo "  PATH for EDirect will be set by run_config.sh"
+    echo "  PATH for EDirect will be set by config.sh"
 fi
 
 echo
