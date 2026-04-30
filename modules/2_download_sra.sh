@@ -60,9 +60,6 @@ while read -r SRR; do
     SRR_DIR="${OUTPUT_DIR}/${SRR}"
     mkdir -p "${SRR_DIR}"
 
-    # # Navigate to directory
-    # cd "${SRR}"
-
     # Localise SRA config
     export VDB_CONFIG="${SRR_DIR}/.vdb-config"
     vdb-config --set /repository/user/main/public/root="${SRR_DIR}"
@@ -72,9 +69,6 @@ while read -r SRR; do
         --transport https \
         --output-directory "${SRR_DIR}" "${SRR}" \
         || { echo "prefetch failed for ${SRR}"; exit 1; }
-
-    # # Return to parent directory
-    # cd ..
 
 done < "${ACCESSION_FILE}"
 
