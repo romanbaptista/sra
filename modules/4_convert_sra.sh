@@ -2,8 +2,6 @@
 #SBATCH --job-name=4_convert_sra
 #SBATCH --output=/dev/null
 #SBATCH --error=/dev/null
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=32G
 
 # Exit on error
 set -euo pipefail
@@ -56,10 +54,11 @@ fi
 SRR_DIR="${OUTPUT_DIR}/${SRR}"
 # Create SRR output directory
 mkdir -p "${SRR_DIR}"
+
 # Create log file inside SRR directory
 LOGFILE="${SRR_DIR}/${SRR}_conversion.log"
 # Redirect .out/.err logs to LOGFILE
-exec >"$LOGFILE" 2>&1
+exec >"${LOGFILE}" 2>&1
 
 ######################### SCRIPT #########################
 
@@ -67,15 +66,16 @@ echo
 echo "RUNNING 4_convert_sra.sh..."
 echo
 echo "  Array task: ${SLURM_ARRAY_TASK_ID}"
+echo "  CPUs allocated per task:        ${SLURM_CPUS_PER_TASK}"
+echo "  Memory per CPU:                 ${SLURM_MEM_PER_CPU}"
 echo "  SRR: ${SRR}"
 echo
-
 echo "  Converting ${SRR} to FASTQ"
 
 fasterq-dump \
     "${SRA_PATH}" \
     --split-files \
-    --threads "${THREADS}" \
+    --threads "${SLURM_CPUS_PER_TASK}" \
     --outdir "${SRR_DIR}"
 
 echo "  Compressing FASTQ files"

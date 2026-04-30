@@ -48,11 +48,15 @@ echo
 echo "RUNNING 3_submit_array.sh..."
 echo
 echo "  Detected ${NUM_IDS} SRR accessions"
-echo "  Submitting SLURM array job with ${MAX_JOBS} maximum concurrent tasks"
+echo "  Submitting SLURM array job with ${SLURM_MAX_JOBS} maximum concurrent tasks"
+echo "  CPUs allocated per task:        ${FASTERQ_CPUS}"
+echo "  Memory per CPU:                 ${FASTERQ_MEM_PER_CPU}"
 
 # Submit array job with maximum concurrent tasks
 sbatch \
-    --array=1-${NUM_IDS}%${MAX_JOBS} \
+    --array=1-${NUM_IDS}%${SLURM_MAX_JOBS} \
+    --cpus-per-task="${FASTERQ_CPUS}" \
+    --mem-per-cpu="${FASTERQ_MEM_PER_CPU}" \
     "${PIPELINE_DIR}/modules/4_convert_sra.sh"
 
 echo

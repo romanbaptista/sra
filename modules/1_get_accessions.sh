@@ -81,12 +81,12 @@ echo "  ${COUNT_SAMN} SAMN IDs extracted"
 echo "  SAMN IDs saved to 'biosample_samn_accessions.txt'"
 echo "  Extracting SRR accession IDs"
 
-# Get SRR run accessions from BioProject
-esearch -db bioproject -query "${BIOPROJECT}" \
- | elink -target sra \
- | efetch -format runinfo \
- | awk -F',' 'NR>1 {print $1}' \
- > "${OUTPUT_DIR}/biosample_srr_accessions.txt"
+# # Get SRR run accessions from BioProject
+# esearch -db bioproject -query "${BIOPROJECT}" \
+#  | elink -target sra \
+#  | efetch -format runinfo \
+#  | awk -F',' 'NR>1 {print $1}' \
+#  > "${OUTPUT_DIR}/biosample_srr_accessions.txt"
 
 # Format line endings
 dos2unix "${OUTPUT_DIR}/biosample_srr_accessions.txt"
