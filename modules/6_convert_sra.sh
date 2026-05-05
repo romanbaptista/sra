@@ -164,14 +164,14 @@ fasterq-dump \
     --threads "${SLURM_CPUS_PER_TASK}" \
     --outdir "${SRR_DIR}"
 
-echo "  SRA file converted"
+echo "  SRA files converted"
 echo
-echo "  Compressing FASTQ file..."
+echo "  Compressing FASTQ files..."
 
 # Compress and delete uncompressed files
 gzip -f "${SRR_DIR}"/*.fastq
 
-echo "  FASTQ file compressed"
+echo "  FASTQ files compressed"
 
 echo
 echo "6_convert_sra.sh COMPLETE"

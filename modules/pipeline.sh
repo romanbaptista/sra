@@ -101,5 +101,5 @@ for script in "${SCRIPT_ARRAY[@]}"; do
 done
 
 echo
-echo "Pipeline COMPLETE"
+echo "Pipeline SUBMITTED"
 echo
