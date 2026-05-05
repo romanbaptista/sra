@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #SBATCH --job-name=6_convert_sra
 #SBATCH --output=/dev/null
 #SBATCH --error=/dev/null

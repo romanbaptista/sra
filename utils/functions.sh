@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # check_command
 # Verifies that a command is available in PATH.

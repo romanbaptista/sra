@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 ######################### TMUX SETTINGS #################################
 # TMUX_SESSION_NAME:
