@@ -15,10 +15,6 @@ The pipeline is designed specifically for HPC environments and handles:
 
 All pipeline outputs are written to a dedicated output/ directory, enabling seamless hand‑off to downstream workflows (QC, trimming, alignment, variant calling, etc.).
 
-# Contents
-
-
-
 # Repository Structure
 
 ```text
