@@ -1,6 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
+######################### SETUP ##########################
+
+# Define script name
+SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}" .sh)
+
 ######################### SETUP ###########################
 
 # Define pipeline root directory
