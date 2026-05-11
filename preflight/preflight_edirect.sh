@@ -13,40 +13,29 @@ SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}" .sh)
 # Define toolname
 TOOLNAME="edirect"
 
-######################### PATHS ###########################
-
-# Define environment file path
-EDIRECT_ENV="${ENV_DIR}/${TOOLNAME}.env"
-
 ######################### SOURCE ##########################
 
 # Source tool-specific functions
 source "${UTILS_DIR}/functions_${TOOLNAME}.sh"
+
+######################### PATHS ###########################
+
+# Define environment file path
+ENV_FILE="${ENV_DIR}/${TOOLNAME}.env"
 
 ######################### MAIN ############################
 
 echo "  RUNNING ${SCRIPT_NAME} ..."
 echo "  Checking for ${TOOLNAME} install..."
 
-# Check for esearch
-check_command esearch || download_edirect
+# Check for edirect
+if ! check_edirect; then
+    install_edirect
+fi
 
-echo "  Confirming ${TOOLNAME} installation..."
+# Write environment file (EDIRECT_DIR exported from check_edirect)
+write_env "${EDIRECT_DIR}" "${ENV_FILE}"
 
-check_command esearch || fail "  EDirect installation may have failed or esearch may be unavailable"
-
-echo "  Installation confirmed"
-echo "  Saving install location to '${EDIRECT_ENV}'..."
-
-# Get esearch path
-ESEARCH_PATH="$(command -v esearch)"
-# Get EDirect directory path
-EDIRECT_DIR="$(cd "$(dirname "${ESEARCH_PATH}")" && pwd)"
-# Export EDirect path to EDIRECT_ENV (DO NOT EDIT)
-cat > "${EDIRECT_ENV}" <<EOF
-export EDIRECT_DIR="${EDIRECT_DIR}"
-export PATH="\${EDIRECT_DIR}:\${PATH}"
-EOF
-
-echo "  Installation location saved"
+echo "  Environment file written: ${ENV_FILE}"
+echo "  Install confirmed: ${TOOLNAME}"
 echo "  ${SCRIPT_NAME} COMPLETE"

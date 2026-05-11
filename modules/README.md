@@ -1,108 +1,87 @@
-# Pipeline Modules
+# `modules`
 
-This directory contains the implementation modules for the sra pipeline.
+This directory contains the implementation modules for the sra-download pipeline.
 
-Each module is responsible for exactly one pipeline stage and may be safely rerun if previous outputs already exist.
+Each module is responsible for exactly one pipeline role and is executed sequentially as part of a deterministic, preflight‑validated workflow designed for HPC login‑node execution.
 
-Modules are executed sequentially by `modules/pipeline.sh`, which itself is launched inside a tmux session by `run_pipeline.sh`.
+Modules are coordinated by `modules/pipeline.sh`, which is invoked by `run_pipeline.sh` only after all preflight checks have completed successfully.
 
 # Design Contract
 
-All modules adhere to the following principles:
+All modules in this directory adhere to the following principles:
 - Single responsibility per script
-- Explicit input and output locations
-- Fail‑fast preflight checks
-- Restart‑safe behavior
-- No reliance on global system configuration
-- No shared mutable state between samples
+- Explicit, absolute input and output paths
+- Strong separation between validation and execution
+- Restart‑safe behavior where possible
+- Deterministic execution order
+- No reliance on implicit working directories
+- No reliance on undeclared global state
+- Assumption that all preflight invariants have already been enforced
+
+Modules do not repeat preflight checks and may assume that all required inputs, tools, and configuration variables are valid at runtime.
 
 # Execution Order
 
-Modules are executed in the order defined in `utils/array.sh`. The current execution order is:
+The `sra-download` pipeline uses a sequential execution model:
+- Modules are executed one at a time in a fixed order
+- All execution occurs inside a persistent `tmux` session
+- This pipeline runs exclusively on the HPC login node
+
+The current set of modules is:
 
 ```text
-1_install_edirect.sh
-2_install_sratoolkit.sh
-3_get_accessions.sh
-4_download_sra.sh
-5_submit_array.sh
-6_convert_sra.sh
+pipeline.sh
+1_get_accessions.sh
+2_download_sra.sh
 ```
+
+Execution logic is explicitly defined in `modules/pipeline.sh`.
 
 # Module Overview
 
 ## `pipeline.sh`
 
-Internal orchestrator for the pipeline.
+Internal module orchestrator for the `sra-download` pipeline.
+
+### Role
+`pipeline.sh` is responsible for coordinating sequential execution of the download pipeline. It is not intended to be executed directly by end users.
 
 ### Workflow
-- Sources configuration and shared utilities
-- Validates that all module scripts exist
-- Executes each module in order
-- Captures high‑level pipeline output into logs/pipeline.log
-- Stops immediately if any module fails
+- Runs inside a `tmux` session started by `run_pipeline.sh`
+- Re-establishes pipeline context and sources shared configuration
+- Creates pipeline‑level logging infrastructure
+- Iterates over all module scripts defined in `SCRIPT_ARRAY`
+- Executes each module in order, capturing per‑module logs
+- Aborts immediately if any module fails
 
-`pipeline.sh` is not intended to be run directly by the user.
-
-## `1_install_edirect.sh`
-Installs and verifies NCBI EDirect, which is required for querying BioProject and BioSample metadata.
-
-### Workflow
-- Checks for the presence of esearch, efetch, elink, and related tools
-- Downloads and installs EDirect locally if not found
-- Ensures the current shell can access EDirect binaries
-- Writes an environment file 
-```
-    env/edirect.env
-```
-This file exports:
-- `EDIRECT_DIR`
-- an updated `PATH`
+`pipeline.sh` performs no data acquisition itself.
 
 ### Guarantees
-- Safe to rerun
-- Will not reinstall EDirect unnecessarily
-- Does not modify global system paths
+- Executes modules in a deterministic order
+- Produces a dedicated log file per module
+- Does not duplicate preflight validation logic
+- Does not rely on inherited shell state
+- Does not submit SLURM jobs
 
-## `2_install_sratoolkit.sh`
-Installs and verifies the SRA Toolkit, used for downloading and converting SRA files.
-
-### Workflow
-- Checks for `prefetch` and `fasterq-dump`
-- Downloads a pinned SRA Toolkit archive if missing
-- Extracts the toolkit into the user’s home directory
-- Temporarily exposes toolkit binaries for verification
-- Writes an environment file:
-```
-    env/sratoolkit.env
-```
-This file exports:
-- `SRA_DIR`
-- an updated `PATH`
-
-### Guarantees
-- Local, reproducible SRA Toolkit installation
-- No reliance on system modules
-- Safe to rerun without duplicate downloads
-
-## `3_get_accessions.sh`
-Discovers sequencing accessions associated with a user‑supplied BioProject ID.
+## `1_get_accessions.sh`
+Discovers BioSample and SRA run accessions associated with a BioProject.
 
 ### Inputs
 - `BIOPROJECT` (from `config.sh`)
-- Active EDirect environment (`env/edirect.env`)
+- NCBI EDirect tools (validated in preflight)
+- Network access on the login node
 
 ### Workflow
-- Query BioProject
-- Retrieve BioSample UIDs
-- Fetch BioSample docsum metadata
-- Extract SAMN accessions
-- Query SRA to derive SRR (run) accessions
-- Normalize output formatting
+- Queries the NCBI BioProject database
+- Retrieves associated BioSample UIDs
+- Downloads BioSample metadata in XML format
+- Extracts BioSample accession identifiers (SAMN)
+- Queries SRA to derive run accessions (SRR)
+- Writes accession lists to stage‑specific output files
 
-### Outputs
+## Outputs
 ```text
-output/3_get_accessions/
+output/1_get_accessions/
 ├── biosample_uids.txt
 ├── biosample_docsum.xml
 ├── biosample_samn_accessions.txt
@@ -110,86 +89,53 @@ output/3_get_accessions/
 ```
 
 ### Guarantees
-- Fails if no BioSamples or SRRs are found
-- Produces deterministic accession lists
-- Safe to rerun without overwriting unrelated stages
+- Deterministic accession discovery for a given BioProject
+- Explicit failure if no accessions are found
+- Output files are overwritten on each run
+- Assumes all EDirect tools were validated in preflight
 
-## `4_download_sra.sh`
+## `2_download_sra.sh`
 Downloads `.sra` files for each SRR accession.
 
 ### Inputs
-- SRR list from `3_get_accessions.sh`
-- Active SRA Toolkit environment (`env/sratoolkit.env`)
+- SRR accession list from `1_get_accessions.sh`
+- SRA Toolkit (`prefetch`, `vdb-config`, validated in preflight)
+- Network access on the login node
 
-### Workflow
-
-- Iterates through SRR accessions
-- Creates a dedicated directory per SRR
-- Uses a per‑SRR VDB_CONFIG to isolate repository state
-- Downloads `.sra` files using prefetch
-- Skips SRRs that have already been downloaded
-
-### Outputs
+### Expected Input Layout
 ```text
-output/4_download_sra/
-└── SRRXXXXXXXX/
-    └── SRRXXXXXXXX.sra
+output/1_get_accessions/
+└── biosample_srr_accessions.txt
 ```
 
-### Guarantees
-- Restart‑safe
-- No cross‑contamination between SRR downloads
-- Partial downloads cause a controlled failure
-
-## `5_submit_array.sh`
-Creates the SLURM array job responsible for FASTQ conversion.
-
-### Inputs
-- SRR accessions file
-- Downloaded `.sra` files
-- SLURM configuration from `config.sh`
-
 ### Workflow
-- Validates SLURM availability (`sbatch`)
-- Counts non‑empty SRR accessions
-- Submits `6_convert_sra.sh` as a bounded SLURM array job
-
-### Outputs
-None directly (job submission only).
-
-### Guarantees
-- Array size matches number of valid SRRs
-- Respects user‑defined concurrency limits
-- Submits no jobs if SRR list is empty
-
-## `6_convert_sra.sh`
-Converts `.sra` files to compressed FASTQ files using SLURM array jobs.
-
-### Execution Context
-- Must be run under SLURM
-- Uses `SLURM_ARRAY_TASK_ID` to select the SRR to process
-
-### Workflow
-
-- Resolves SRR accession by array index
-- Verifies input `.sra`
+- Reads SRR accessions sequentially
+- Normalizes and validates each accession ID
 - Creates a per‑SRR output directory
-- Redirects all output to a per‑sample log file
-- Skips conversion if compressed FASTQs already exist
-- Runs `fasterq-dump` with allocated CPUs
-- Compresses FASTQs and removes partial outputs on failure
+- Configures a per‑SRR VDB configuration file
+- Downloads the `.sra` file using prefetch
+- Skips accessions that have already been downloaded
+- Aborts immediately on download failure
 
 ### Outputs
 ```text
-output/6_convert_sra/
+output/2_download_sra/
 └── SRRXXXXXXXX/
-    ├── SRRXXXXXXXX_1.fastq.gz
-    ├── SRRXXXXXXXX_2.fastq.gz
-    └── SRRXXXXXXXX_conversion.log
+    ├── SRRXXXXXXXX.sra
+    └── .vdb-config
 ```
 
 ### Guarantees
-- Idempotent under re‑run
-- Safe parallel execution
-- No shared filesystem state between array tasks
-- Partial FASTQs are cleaned up automatically on error
+- No shared state between accessions
+- Per‑accession configuration isolation
+- Restart‑safe behavior (already‑downloaded runs are skipped)
+- Deterministic directory layout
+- Assumes all SRA Toolkit requirements were satisfied in preflight
+
+# Notes
+- All module scripts assume that preflight validation has already succeeded
+- No module installs software or modifies user environment files
+- All filesystem paths are absolute and derived from pipeline context
+- No module requires interactive user input
+- The pipeline is safe to re‑run to resume partial downloads
+- FASTQ conversion is intentionally handled by a separate downstream pipeline

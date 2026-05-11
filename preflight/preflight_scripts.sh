@@ -8,7 +8,7 @@ set -euo pipefail
 ######################## SOURCE ##########################
 
 # Source utils file
-source "${UTILS_DIR}/array.sh"
+source "${UTILS_DIR}/arrays.sh"
 
 ######################### MAIN ############################
 
@@ -18,10 +18,10 @@ SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}" .sh)
 echo "  RUNNING ${SCRIPT_NAME} ..."
 echo "  Checking module scripts..."
 
-# Iterate through scripts
+# Iterate over scripts
 for script in "${SCRIPT_ARRAY[@]}"; do
-    check_file "${MODULES_DIR}/${script}" || fail "    Please ensure file exists: ${script}"
-    check_file_data "${MODULES_DIR}/${script}" || fail "   Please ensure file contains data: ${script}"
+    check_file "${MODULES_DIR}/${script}" || fail "  Please ensure file exists: ${script}"
+    check_file_data "${MODULES_DIR}/${script}" || fail "  Please ensure file contains data: ${script}"
     
     if ! check_executable "${MODULES_DIR}/${script}"; then 
         make_executable "${MODULES_DIR}/${script}" || fail "  File cannot be made executable: ${script}"
@@ -33,8 +33,8 @@ echo
 echo "  Checking for pipeline.sh ..."
 
 # Check for pipeline.sh
-check_file "${MODULES_DIR}/pipeline.sh" || fail "   Please ensure pipeline.sh exists"
-check_file_data "${MODULES_DIR}/pipeline.sh" || fail "   Please ensure pipeline.sh contains data"
+check_file "${MODULES_DIR}/pipeline.sh" || fail "  Please ensure pipeline.sh exists"
+check_file_data "${MODULES_DIR}/pipeline.sh" || fail "  Please ensure pipeline.sh contains data"
 
 echo "  pipeline.sh confirmed"
 echo "  ${SCRIPT_NAME} COMPLETE"

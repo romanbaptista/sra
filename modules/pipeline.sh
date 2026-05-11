@@ -6,23 +6,37 @@ set -euo pipefail
 # Define script name
 SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}" .sh)
 
+######################### PATHS ###########################
+
+# Define directories paths
+PIPELINE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MODULES_DIR="${PIPELINE_DIR}/modules"
+UTILS_DIR="${PIPELINE_DIR}/utils"
+
 ######################### SOURCE ##########################
 
 # Source scripts
 source "${UTILS_DIR}/functions_base.sh"
-source "${UTILS_DIR}/array.sh"
+source "${UTILS_DIR}/arrays.sh"
 source "${PIPELINE_DIR}/config.sh"
 
-######################### PATHS ###########################
+######################### OUTPUT ##########################
 
-# Define key directories
-PIPELINE_DIR="$(get_parent_directory "${BASH_SOURCE[0]}")"
-MODULES_DIR="${PIPELINE_DIR}/modules"
-UTILS_DIR="${PIPELINE_DIR}/utils"
-LOG_DIR="${PIPELINE_DIR}/logs"
+# Create output directory
+OUTPUT_DIR="${PIPELINE_DIR}/output"
+mkdir -p "${OUTPUT_DIR}"
+
+######################### ENV #############################
+
+# Ensure environment directory
 ENV_DIR="${PIPELINE_DIR}/env"
+mkdir -p "${ENV_DIR}"
 
 ######################### LOGS ############################
+
+# Ensure log directory
+LOG_DIR="${PIPELINE_DIR}/logs"
+mkdir -p "${LOG_DIR}"
 
 # Define log file for pipeline.sh
 LOG_FILE="${LOG_DIR}/pipeline.log"
@@ -37,7 +51,7 @@ echo "RUNNING ${SCRIPT_NAME} ..."
 echo
 echo "  Scripts to run:"
 
-for script in "${RUN_ARRAY[@]}"; do
+for script in "${SCRIPT_ARRAY[@]}"; do
     echo "      ${script}"
 done
 
@@ -45,7 +59,7 @@ echo
 echo "  Pipeline starting..."
 
 # Iterate over scripts
-for script in "${RUN_ARRAY[@]}"; do
+for script in "${SCRIPT_ARRAY[@]}"; do
 
     echo
     echo "  Running script: '${script}'..."
@@ -66,5 +80,5 @@ for script in "${RUN_ARRAY[@]}"; do
 done
 
 echo
-echo "Pipeline SUBMITTED"
+echo "${SCRIPT_NAME} COMPLETE"
 echo

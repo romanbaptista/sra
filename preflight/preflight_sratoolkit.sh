@@ -28,38 +28,21 @@ source "${UTILS_DIR}/functions_${TOOLNAME}.sh"
 # Define tool extract directory path
 EXTRACT_DIR="${HOME}/sratoolkit.${SRA_VERSION}-centos_linux64"
 # Define environment file path
-SRA_ENV="${ENV_DIR}/${TOOLNAME}.env"
+ENV_FILE="${ENV_DIR}/${TOOLNAME}.env"
 
 ######################### MAIN ############################
 
 echo "  RUNNING ${SCRIPT_NAME} ..."
-echo "  Checking for ${TOOLNAME}-specific user-defined variables..."
-
-# Define config variables
-VARIABLE_ARRAY=(
-    FASTERQ_CPUS
-    FASTERQ_MEM_PER_CPU
-)
-
-# Iterate over variables
-for variable in "${VARIABLE_ARRAY[@]}"; do
-    check_variable "${variable}" || fail "  Set variable in config.sh: ${variable}"
-done
-
-echo "  All ${TOOLNAME} variables confirmed"
 echo "  Checking for ${TOOLNAME} ${SRA_VERSION} install..."
 
 # Check for sratoolkit
 if ! check_sratoolkit; then
-    # If not found, download and extract
-    install_sratoolkit "${SRA_ARCHIVE}" "${SRA_URL}" "${EXTRACT_DIR}" "${SRA_ENV}"
-    # Write to environment file
-    write_env "${EXTRACT_DIR}" "${SRA_ENV}" || fail "  Unable to write SRA Toolkit environment file"
-else
-    # Write to environment file
-    write_env "${SRA_DIR}" "${SRA_ENV}" || fail "  Unable to write SRA Toolkit environment file"
+    install_sratoolkit "${SRA_ARCHIVE}" "${SRA_URL}" "${EXTRACT_DIR}"
 fi
 
-echo "  ${TOOLNAME} install confirmed"
-echo "  ${SCRIPT_NAME} COMPLETE"
+# Write environment file (SRA_DIR exported from check_sratoolkit)
+write_env "${SRA_DIR}" "${ENV_FILE}" || fail "  Unable to write SRA Toolkit environment file"
 
+echo "  Environment file written: ${ENV_FILE}"
+echo "  Install confirmed: ${TOOLNAME}"
+echo "  ${SCRIPT_NAME} COMPLETE"

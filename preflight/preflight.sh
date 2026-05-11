@@ -26,10 +26,10 @@ PREFLIGHT_ARRAY=(
 )
 
 # Iterate through preflight checks
-for file in "${PREFLIGHT_ARRAY[@]}"; do
-    check_file "${PREFLIGHT_DIR}/${file}" || fail "  Please ensure that preflight script exists: ${file}"
-    check_file_data "${PREFLIGHT_DIR}/${file}" || fail "  Please ensure that preflight script contains data: ${file}"
-    source "${PREFLIGHT_DIR}/${file}"
+for script in "${PREFLIGHT_ARRAY[@]}"; do
+    check_file "${PREFLIGHT_DIR}/${script}" || fail "  Please ensure that preflight script exists: ${script}"
+    check_file_data "${PREFLIGHT_DIR}/${script}" || fail "  Please ensure that preflight script contains data: ${script}"
+    source "${PREFLIGHT_DIR}/${script}"
 done
 
 echo

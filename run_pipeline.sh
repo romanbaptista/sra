@@ -10,11 +10,19 @@ SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}" .sh)
 
 ######################### PATHS ###########################
 
-# Define key directories
-PIPELINE_DIR="$(get_directory "${BASH_SOURCE[0]}")"
+# Define directory paths
+PIPELINE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODULES_DIR="${PIPELINE_DIR}/modules"
 PREFLIGHT_DIR="${PIPELINE_DIR}/preflight"
 UTILS_DIR="${PIPELINE_DIR}/utils"
+
+######################### SOURCE ##########################
+
+# Source scripts
+source "${UTILS_DIR}/functions_base.sh"
+source "${UTILS_DIR}/arrays.sh"
+source "${UTILS_DIR}/exports.sh"
+source "${PIPELINE_DIR}/config.sh"
 
 ######################### ENV #############################
 
@@ -33,19 +41,12 @@ LOG_FILE="${LOG_DIR}/${SCRIPT_NAME}.log"
 # Redirect stdout/stderr to terminal and log file
 exec > >(tee -a "${LOG_FILE}") 2>&1
 
-######################### SOURCE ##########################
-
-# Source scripts
-source "${UTILS_DIR}/functions_base.sh"
-source "${UTILS_DIR}/array.sh"
-source "${UTILS_DIR}/exports.sh"
-source "${PIPELINE_DIR}/config.sh"
-
 ######################### CHECKS ##########################
 
 echo
 echo "PREFLIGHT for ${PIPELINE_NAME} ..."
 
+check_file "${PREFLIGHT_DIR}/preflight.sh" || fail "  Please ensure that preflight.sh exists"
 source "${PREFLIGHT_DIR}/preflight.sh"
 
 echo
@@ -68,7 +69,7 @@ echo "      Memory per CPU:             ${FASTERQ_MEM_PER_CPU}"
 echo
 echo "  Scripts to run:"
 
-for script in "${SCRIPT_ARRAY}"; do
+for script in "${SCRIPT_ARRAY[@]}"; do
     echo "    ${script}"
 done
 

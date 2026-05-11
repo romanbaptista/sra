@@ -1,17 +1,17 @@
 #!/bin/bash
 set -euo pipefail
 
-######################### MAIN ############################
+######################### SETUP ##########################
 
 # Define script name
 SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}" .sh)
 
-# Define variable array
-VARIABLE_ARRAY=(
-    TMUX_SESSION_NAME
-    BIOPROJECT
-    SLURM_MAX_JOBS
-)
+######################## SOURCE ##########################
+
+# Source utils file
+source "${UTILS_DIR}/arrays.sh"
+
+######################### MAIN ############################
 
 echo "  RUNNING ${SCRIPT_NAME} ..."
 echo "  Checking for core user-defined variables..."

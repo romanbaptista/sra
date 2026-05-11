@@ -198,11 +198,11 @@ check_variable() {
     local name="$1"
     local value="${!name-}"
 
-    if [[ -n "${value}" ]]; then
+    if [[ -n "${value//[[:space:]]/}" ]]; then
         echo "  SUCCESS: Variable set: ${name}"
         return 0
     else
-        echo "  ERROR: Variable not set: ${name}"
+        echo "  ERROR: Variable not set or contains only whitespaces: ${name}"
         return 1
     fi
 }
@@ -281,22 +281,66 @@ check_arg() {
     }
 }
 
-
+# write_env
+# Writes an environment file exporting a tool installation
+# directory and updating PATH accordingly.
+#
+# Arguments:
+#   $1 - Path to the tool installation directory
+#   $2 - Destination environment file path
+#
+# Operation:
+#   - Validates that both arguments are provided.
+#   - Writes an environment file that exports:
+#       * TOOL_DIR (installation root)
+#       * PATH with ${TOOL_DIR}/bin prepended
+#   - Overwrites the environment file if it already exists.
+#
+# Intended use:
+#   The resulting environment file is sourced by downstream scripts
+#   to ensure a consistent and reproducible tool configuration.
+#
+# Returns:
+#   0 on success
+#   2 if a required argument is missing (programmer / usage error)
+#
+# Example:
+#   write_env "${SRA_DIR}" "${PIPELINE_DIR}/env/sratoolkit.env"
 write_env() {
-    local extract_dir="$1"
+    local install_dir="$1"
     local env_file="$2"
 
-    check_arg "${extract_dir}" || return $?
+    check_arg "${install_dir}" || return $?
     check_arg "${env_file}" || return $?
 
     cat > "${env_file}" << EOF
-export SRA_DIR="${extract_dir}"
-export PATH="\${SRA_DIR}/bin:\${PATH}"
+export TOOL_DIR="${install_dir}"
+export PATH="\${TOOL_DIR}/bin:\${PATH}"
 EOF
 }
 
-# Example: DIR="$(get_directory "/path/to/file.txt")"
-# Example: DIR="$(get_directory "${BASH_SOURCE[0]}")"
+# get_directory
+# Returns the directory containing the given file or directory path.
+#
+# Arguments:
+#   $1 - File or directory path
+#
+# Operation:
+#   - Validates that the argument is provided.
+#   - Resolves the directory component of the path using dirname.
+#   - Returns the absolute, canonical directory path.
+#
+# Notes:
+#   - Relative paths are resolved to absolute paths.
+#   - The caller's working directory is not modified.
+#
+# Returns:
+#   Absolute path of the containing directory on success
+#   1 if the argument is missing or resolution fails
+#
+# Example:
+#   DIR="$(get_directory "/path/to/file.txt")"
+#   DIR="$(get_directory "${BASH_SOURCE[0]}")"
 get_directory() {
     local path="$1"
 
@@ -305,8 +349,30 @@ get_directory() {
     cd "$(dirname -- "${path}")" && pwd
 }
 
-# Example: DIR="$(get_parent_directory "/path/to/file.txt")"
-# Example: DIR="$(get_parent_directory "${BASH_SOURCE[0]}")"
+# get_parent_directory
+# Returns the parent directory of the directory containing
+# the given file or directory path.
+#
+# Arguments:
+#   $1 - File or directory path
+#
+# Operation:
+#   - Validates that the argument is provided.
+#   - Determines the directory containing the path.
+#   - Returns the absolute, canonical parent directory.
+#
+# Notes:
+#   - Equivalent to resolving dirname(path) and ascending one level.
+#   - Relative paths are resolved to absolute paths.
+#   - The caller's working directory is not modified.
+#
+# Returns:
+#   Absolute path of the parent directory on success
+#   1 if the argument is missing or resolution fails
+#
+# Example:
+#   DIR="$(get_parent_directory "/path/to/file.txt")"
+#   DIR="$(get_parent_directory "${BASH_SOURCE[0]}")"
 get_parent_directory() {
     local path="$1"
     
