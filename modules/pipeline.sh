@@ -8,10 +8,25 @@ SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}" .sh)
 
 ######################### PATHS ###########################
 
-# Define directories paths
-PIPELINE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Define directory paths
+PIPELINE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)"
 MODULES_DIR="${PIPELINE_DIR}/modules"
+PREFLIGHT_DIR="${PIPELINE_DIR}/preflight"
 UTILS_DIR="${PIPELINE_DIR}/utils"
+LOG_DIR="${PIPELINE_DIR}/logs"
+ENV_DIR="${PIPELINE_DIR}/env"
+OUTPUT_DIR="${PIPELINE_DIR}/output"
+
+# Define directories to create
+DIR_ARRAY=(
+    OUTPUT_DIR
+    LOG_DIR
+    ENV_DIR
+)
+
+# Create directories
+for dir in "${DIR_ARRAY[@]}":
+    mkdir -p "${!dir}"
 
 ######################### SOURCE ##########################
 
@@ -20,23 +35,7 @@ source "${UTILS_DIR}/functions_base.sh"
 source "${UTILS_DIR}/arrays.sh"
 source "${PIPELINE_DIR}/config.sh"
 
-######################### OUTPUT ##########################
-
-# Create output directory
-OUTPUT_DIR="${PIPELINE_DIR}/output"
-mkdir -p "${OUTPUT_DIR}"
-
-######################### ENV #############################
-
-# Ensure environment directory
-ENV_DIR="${PIPELINE_DIR}/env"
-mkdir -p "${ENV_DIR}"
-
 ######################### LOGS ############################
-
-# Ensure log directory
-LOG_DIR="${PIPELINE_DIR}/logs"
-mkdir -p "${LOG_DIR}"
 
 # Define log file for pipeline.sh
 LOG_FILE="${LOG_DIR}/pipeline.log"
