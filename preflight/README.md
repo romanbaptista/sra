@@ -31,7 +31,14 @@ The preflight layer ensures that:
 This avoids late‑stage download failures and prevents partially‑executed pipelines caused by missing dependencies or misconfiguration.
 
 # Preflight Script Overview
-The following scripts are executed during preflight, in a controlled order defined by `preflight/preflight.sh`:
+The set and execution order of all preflight scripts is centrally defined in:
+```text
+utils/arrays.sh  → PREFLIGHT_ARRAY
+```
+
+`preflight/preflight.sh` sources and executes each script listed in `PREFLIGHT_ARRAY` sequentially, terminating immediately on failure.
+
+Current preflight order:
 
 ```text
 preflight_variables.sh

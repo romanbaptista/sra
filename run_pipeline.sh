@@ -21,7 +21,6 @@ UTILS_DIR="${PIPELINE_DIR}/utils"
 # Source scripts
 source "${UTILS_DIR}/functions_base.sh"
 source "${UTILS_DIR}/arrays.sh"
-source "${UTILS_DIR}/exports.sh"
 source "${PIPELINE_DIR}/config.sh"
 
 ######################### ENV #############################
@@ -62,9 +61,7 @@ echo
 echo "  User configuration:"
 echo "      tmux session name:          ${TMUX_SESSION_NAME}"
 echo "      BioProject ID:              ${BIOPROJECT}"
-echo "      Max SLURM array jobs:       ${SLURM_MAX_JOBS}"
-echo "      CPUs allocated per task:    ${FASTERQ_CPUS}"
-echo "      Memory per CPU:             ${FASTERQ_MEM_PER_CPU}"
+
 
 echo
 echo "  Scripts to run:"

@@ -1,5 +1,20 @@
 #!/bin/bash
 
+# PREFLIGHT_ARRAY:
+# Ordered list of preflight scripts executed during pipeline validation.
+# This array defines all preflight checks required to safely run the pipeline.
+# Each script is sourced sequentially by preflight.sh before any pipeline
+# modules are executed.
+#
+# Define preflight array (all preflight scripts, order is significant)
+PREFLIGHT_ARRAY=(
+    "preflight_variables.sh"
+    "preflight_scripts.sh"
+    "preflight_commands.sh"
+    "preflight_edirect.sh"
+    "preflight_sratoolkit.sh"
+)
+
 # SCRIPT_ARRAY:
 # Ordered list of module scripts that comprise the sra-download pipeline.
 #

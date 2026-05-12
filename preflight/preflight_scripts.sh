@@ -5,15 +5,17 @@ set -euo pipefail
 
 : "${MODULES_DIR:?MODULES_DIR not set (check PATHS section in run_pipeline.sh)}"
 
+######################### SETUP ##########################
+
+# Define script name
+SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}" .sh)
+
 ######################## SOURCE ##########################
 
 # Source utils file
 source "${UTILS_DIR}/arrays.sh"
 
 ######################### MAIN ############################
-
-# Define script name
-SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}" .sh)
 
 echo "  RUNNING ${SCRIPT_NAME} ..."
 echo "  Checking module scripts..."

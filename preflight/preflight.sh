@@ -11,19 +11,15 @@ set -euo pipefail
 # Define script name
 SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}" .sh)
 
+######################## SOURCE ##########################
+
+# Source utils file
+source "${UTILS_DIR}/arrays.sh"
+
 ######################### MAIN ############################
 
 echo
 echo "  RUNNING ${SCRIPT_NAME} ..."
-
-# Define preflight array
-PREFLIGHT_ARRAY=(
-    "preflight_variables.sh"
-    "preflight_scripts.sh"
-    "preflight_commands.sh"
-    "preflight_edirect.sh"
-    "preflight_sratoolkit.sh"
-)
 
 # Iterate through preflight checks
 for script in "${PREFLIGHT_ARRAY[@]}"; do

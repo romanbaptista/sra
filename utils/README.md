@@ -40,10 +40,11 @@ functions_sratoolkit.sh
 Each script serves a narrow, well‑defined purpose and participates in a clear separation of concerns between validation, installation, and execution.
 
 ## `arrays.sh`
-Defines the canonical arrays that describe the structure and requirements of the sra-download pipeline.
+Defines the canonical arrays that describe the structure and requirements of the `sra-download` pipeline.
 
 ### Responsibilities
-- Declares the set of module scripts that comprise the pipeline
+- Declares the ordered set of preflight scripts executed during pipeline validation
+- Declares the ordered set of module scripts that comprise the pipeline
 - Declares the set of framework‑level external commands required
 - Declares the set of required user configuration variables
 
@@ -53,6 +54,7 @@ All preflight scripts defer to `arrays.sh` as the single source of truth for wha
 
 | Array | Purpose |
 |--------|-------------|
+| `PREFLIGHT_ARRAY` | Ordered list of preflight scripts executed by `preflight.sh` |
 | `SCRIPT_ARRAY` | Ordered list of pipeline module scripts |
 | `COMMAND_ARRAY` | Framework‑level commands required by the pipeline |
 | `VARIABLE_ARRAY` | Required user‑defined configuration variables |
