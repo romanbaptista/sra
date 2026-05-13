@@ -27,8 +27,9 @@ DIR_ARRAY=(
 )
 
 # Create directories
-for dir in "${DIR_ARRAY[@]}":
+for dir in "${DIR_ARRAY[@]}"; do
     mkdir -p "${!dir}"
+done
 
 ######################### SOURCE ##########################
 
